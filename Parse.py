@@ -47,20 +47,20 @@ def isCircle(image):
 		return False
 	return True
 
-def eat(j, i, matrix):
+def eat(i, j, pix):
 	blob = []
 	eater = set()
-	eater.add((j, i))
+	eater.add((i, j))
 	while len(eater) != 0:
-		(j, i) = eater.pop()
-		if matrix[j][i] == 1:
-			blob.append((j, i))
-			matrix[j][i] = 0
-			eater.add((j - 1, i))
-			eater.add((j + 1, i))
-			eater.add((j, i - 1))
-			eater.add((j, i + 1))
-	return (blob, matrix)
+		(i, j) = eater.pop()
+		if pix[i, j] != (255, 255, 255, 255):
+			blob.append((i, j))
+			pix[i, j] = (255, 255, 255, 255)
+			eater.add((i - 1, j))
+			eater.add((i + 1, j))
+			eater.add((i, j - 1))
+			eater.add((i, j + 1))
+	return (blob, pix)
 
 def get_round_size(blob):
 	w = 1000000
@@ -68,14 +68,14 @@ def get_round_size(blob):
 	h = 1000000
 	H = 0
 	for i in range(len(blob)):
-		if blob[i][0] < h:
-			h = blob[i][0]
-		if blob[i][0] > H:
-			H = blob[i][0]
-		if blob[i][1] < w:
-			w = blob[i][1]
-		if blob[i][1] > W:
-			W = blob[i][1]
+		if blob[i][1] < h:
+			h = blob[i][1]
+		if blob[i][1] > H:
+			H = blob[i][1]
+		if blob[i][0] < w:
+			w = blob[i][0]
+		if blob[i][0] > W:
+			W = blob[i][0]
 	return (W - w + 1, H - h + 1, w, h)
 
 def writeIm(blob, file, W, H, w_min, h_min):
@@ -83,43 +83,43 @@ def writeIm(blob, file, W, H, w_min, h_min):
 	pixels = image.load()
 	im_pixels = file.load()
 	for i in range(len(blob)):
-		w = blob[i][1]
-		h = blob[i][0]
+		w = blob[i][0]
+		h = blob[i][1]
 		pixels[w - w_min, h - h_min] = im_pixels[w, h]
 	return image
 
 def colorMask(mask, blob):
 	for i in range(len(blob)):
-		mask[blob[i][1], blob[i][0]] = (255, 0, 0, 255)
+		mask[blob[i][0], blob[i][1]] = (255, 0, 0, 255)
 	return mask
 	
-def GetTree():
-	for file in glob.glob("input\*\*.jpg"):
-		image = Image.open(file)
-		name = os.path.basename(file)
-		path, ext = os.path.splitext(file)
-		mask = Image.open(path + ".JPG.hand_mask.png")
-		width = image.size[0]
-		height = image.size[1]
-		matrix = [[0 for x in range(width)] for y in range(height)]
-		pix = mask.load()
-		print(name)
-		for i in range(width):
-			for j in range(height):
-				if (pix[i, j] != (255, 255, 255, 255)) & (pix[i, j] != 1):
-					matrix[j][i] = 1
-		num = 1
-		new_mask = mask.copy()
-		new_mask = new_mask.convert("RGBA")
-		new_mask_pixels = new_mask.load()
-		for i in range(width):
-			for j in range(height):
-				if matrix[j][i] == 1:
-					(blob, matrix) = eat(j, i, matrix)
-					(w, h, w_min, h_min) = get_round_size(blob)
-					im = writeIm(blob, image, w, h, w_min, h_min)
-					if isCircle(im):
-						im.save("trees/" + name + "_" + str(num) + ".png", "PNG")
-						new_mask_pixels = colorMask(new_mask_pixels, blob)
-						num = num + 1
-		new_mask.save("masks/" + name + ".png", "PNG")
+def GetTree(file):
+	image = Image.open(file)
+	name = os.path.basename(file)
+	path, ext = os.path.splitext(file)
+	mask = Image.open(path + ".JPG.hand_mask.png")
+	mask = mask.convert("RGBA")
+	width = image.size[0]
+	height = image.size[1]
+	pix = mask.load()
+	print(name)
+	num = 1
+	new_mask = mask.copy()
+	new_mask_pixels = new_mask.load()
+	for i in range(width):
+		for j in range(height):
+			if pix[i, j] != (255, 255, 255, 255):
+				(blob, pix) = eat(i, j, pix)
+				(w, h, w_min, h_min) = get_round_size(blob)
+				im = writeIm(blob, image, w, h, w_min, h_min)
+				if isCircle(im):
+					im.save("trees/" + name + "_" + str(num) + ".png", "PNG")
+					new_mask_pixels = colorMask(new_mask_pixels, blob)
+					num = num + 1
+	return new_mask
+	
+#main
+for file in glob.glob("input\*\*.jpg"):
+	new_mask = GetTree(file)
+	name = os.path.basename(file)
+	new_mask.save("masks/" + name + ".png", "PNG")

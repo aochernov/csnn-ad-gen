@@ -45,7 +45,6 @@ def Blur(pixels, x, y):
 			pix = pixels[x + i, y + j]
 			color = (color[0] + pix[0], color[1] + pix[1], color[2] + pix[2])
 	new_color = (color[0] // 121, color[1] // 121, color[2] // 121)
-	#new_color = (255, 0, 0, 255)
 	return new_color
 
 def CreateTree(file, trees):
@@ -54,21 +53,16 @@ def CreateTree(file, trees):
 	mask = Image.open("masks/" + name + ".png")
 	width = image.size[0]
 	height = image.size[1]
-	matrix = [[0 for x in range(width)] for y in range(height)]
 	pix = mask.load()
 	print(name)
-	for i in range(width):
-		for j in range(height):
-			if pix[i, j] == (255, 0, 0, 255):
-				matrix[j][i] = 1
 	new_image = image.copy()
 	new_mask = mask.copy()
 	new_image_pixels = new_image.load()
 	new_mask_pixels = new_mask.load()
 	for i in range(width):
 		for j in range(height):
-			if matrix[j][i] == 1:
-				(blob, matrix) = GT.eat(j, i, matrix)
+			if pix[i, j] == (255, 0, 0, 255):
+				(blob, pix) = GT.eat(i, j, pix)
 				(w, h, w_min, h_min) = GT.get_round_size(blob)
 				new_tree = GetTree(trees, w, h)
 				tree_pix = new_tree.load()
