@@ -1,6 +1,6 @@
-import fullImageDistortion as dist, os, glob, random
+import os, glob, random
 from PIL import Image, ImageFilter
-import GettingTree as GT
+import Parse as GT
 
 def GetTree(trees, w, h):
 	tree = trees[random.randint(0, len(trees) - 1)]
@@ -92,7 +92,6 @@ for file in glob.glob("input\*\*.jpg"):
 	images.append(file)
 number = int(input())
 for i in range(number):
-	print(i)
 	im = images[random.randint(0, len(images) - 1)]
 	(new_im, new_mask) = CreateTree(im, trees)
 	new_im.save("output/generated_image_" + str(i + 1) + ".jpg", "JPEG")
