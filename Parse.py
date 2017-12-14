@@ -1,4 +1,4 @@
-import fullImageDistortion as dist, os, glob
+import os, glob
 from PIL import Image
 
 def isCircle(image):
