@@ -14,35 +14,49 @@ def isCircle(image):
 	horizontal = height // 2
 	sz = 100 / (height * width)
 	mirror = 0
-	for i in range(vertical, width):
-		for j in range(horizontal):
+	for j in range(horizontal):
+		for i in range(vertical, width):
 			if ((pix[i, j] == (0, 0, 0, 0)) & (pix[i - vertical, j] != (0, 0, 0, 0))) | ((pix[i, j] != (0, 0, 0, 0)) & (pix[i - vertical, j] == (0, 0, 0, 0))):
 				mirror = mirror + 1
 	perc = int(sz * mirror)
 	if (perc > threshold):
 		return False
 	mirror = 0
-	for i in range(vertical, width):
-		for j in range(horizontal, height):
+	for j in range(horizontal, height):
+		for i in range(vertical, width):
 			if ((pix[i, j] == (0, 0, 0, 0)) & (pix[i - vertical, j] != (0, 0, 0, 0))) | ((pix[i, j] != (0, 0, 0, 0)) & (pix[i - vertical, j] == (0, 0, 0, 0))):
 				mirror = mirror + 1
 	perc = int(sz * mirror)
 	if (perc > threshold):
 		return False
 	mirror = 0
-	for i in range(vertical):
-		for j in range(horizontal, height):
+	for j in range(horizontal, height):
+		for i in range(vertical):
 			if ((pix[i, j] == (0, 0, 0, 0)) & (pix[i, j - horizontal] != (0, 0, 0, 0))) | ((pix[i, j] != (0, 0, 0, 0)) & (pix[i, j - horizontal] == (0, 0, 0, 0))):
 				mirror = mirror + 1
 	perc = int(sz * mirror)
 	if (perc > threshold):
 		return False
 	mirror = 0
-	for i in range(vertical, width):
-		for j in range(horizontal, height):
+	for j in range(horizontal, height):
+		for i in range(vertical, width):
 			if ((pix[i, j] == (0, 0, 0, 0)) & (pix[i, j - horizontal] != (0, 0, 0, 0))) | ((pix[i, j] != (0, 0, 0, 0)) & (pix[i, j - horizontal] == (0, 0, 0, 0))):
 				mirror = mirror + 1
 	perc = int(sz * mirror)
+	if (perc > threshold):
+		return False
+	mirror = 0
+	mirror_alt = 0
+	for j in range(height):
+		for i in range(width):
+			if ((pix[i, j] == (0, 0, 0, 0)) & (pix[width - 1 - i, height - 1 - j] != (0, 0, 0, 0))) | ((pix[i, j] != (0, 0, 0, 0)) & (pix[width - 1 - i, height - 1 - j] == (0, 0, 0, 0))):
+				mirror = mirror + 1
+			if ((pix[width - 1 - i, j] == (0, 0, 0, 0)) & (pix[i, height - 1 - j] != (0, 0, 0, 0))) | ((pix[width - 1 - i, j] != (0, 0, 0, 0)) & (pix[i, height - 1 - j] == (0, 0, 0, 0))):
+				mirror_alt = mirror_alt + 1
+	perc = int(sz * mirror)
+	if (perc > threshold):
+		return False
+	perc = int(sz * mirror_alt)
 	if (perc > threshold):
 		return False
 	return True
@@ -88,9 +102,9 @@ def writeIm(blob, file, W, H, w_min, h_min):
 		pixels[w - w_min, h - h_min] = im_pixels[w, h]
 	return image
 
-def colorMask(mask, blob):
+def colorMask(mask, blob, color):
 	for i in range(len(blob)):
-		mask[blob[i][0], blob[i][1]] = (255, 0, 0, 255)
+		mask[blob[i][0], blob[i][1]] = color
 	return mask
 	
 def GetTree(file):
@@ -104,22 +118,26 @@ def GetTree(file):
 	pix = mask.load()
 	print(name)
 	num = 1
+	checkers_num = 1
 	new_mask = mask.copy()
 	new_mask_pixels = new_mask.load()
-	for i in range(width):
-		for j in range(height):
+	for j in range(height):
+		for i in range(width):
 			if pix[i, j] != (255, 255, 255, 255):
 				(blob, pix) = eat(i, j, pix)
 				(w, h, w_min, h_min) = get_round_size(blob)
 				im = writeIm(blob, image, w, h, w_min, h_min)
 				if isCircle(im):
 					im.save("trees/" + name + "_" + str(num) + ".png", "PNG")
-					new_mask_pixels = colorMask(new_mask_pixels, blob)
+					new_mask_pixels = colorMask(new_mask_pixels, blob, (255, 0, 0, 255))
 					num = num + 1
 	return new_mask
 	
-#main
-for file in glob.glob("input\*\*.jpg"):
-	new_mask = GetTree(file)
-	name = os.path.basename(file)
-	new_mask.save("masks/" + name + ".png", "PNG")
+def main():
+	for file in glob.glob("input\*\*.jpg"):
+		new_mask = GetTree(file)
+		name = os.path.basename(file)
+		new_mask.save("masks/" + name + ".png", "PNG")
+		
+if __name__ == "__main__":
+	main()

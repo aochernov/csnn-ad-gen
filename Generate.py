@@ -14,8 +14,8 @@ def GetTree(trees, w, h):
 	return new_tree
 
 def DrawTree(image, mask, tree, w, h, wd, hd):
-	for i in range(w):
-		for j in range(h):
+	for j in range(h):
+		for i in range(w):		
 			if tree[i, j] != (0, 0, 0, 0):
 				mask[i + wd, j + hd] = (0, 255, 0, 255)
 				image[i + wd, j + hd] = tree[i, j]
@@ -40,8 +40,8 @@ def Separate(pixels, i, j):
 	
 def Blur(pixels, x, y):
 	color = (0, 0, 0)
-	for i in range(-5, 6):
-		for j in range(-5, 6):
+	for j in range(-5, 6):
+		for i in range(-5, 6):
 			pix = pixels[x + i, y + j]
 			color = (color[0] + pix[0], color[1] + pix[1], color[2] + pix[2])
 	new_color = (color[0] // 121, color[1] // 121, color[2] // 121)
@@ -59,8 +59,8 @@ def CreateTree(file, trees):
 	new_mask = mask.copy()
 	new_image_pixels = new_image.load()
 	new_mask_pixels = new_mask.load()
-	for i in range(width):
-		for j in range(height):
+	for j in range(height):
+		for i in range(width):
 			if pix[i, j] == (255, 0, 0, 255):
 				(blob, pix) = GT.eat(i, j, pix)
 				(w, h, w_min, h_min) = GT.get_round_size(blob)
@@ -70,23 +70,26 @@ def CreateTree(file, trees):
 				(new_mask_pixels, new_blob) = Separate(new_mask_pixels, (w // 2) + w_min, (h // 2) + h_min)
 				for k in range(len(new_blob)):
 					new_mask_pixels[new_blob[k][0], new_blob[k][1]] = (0, 0, 0, 255)
-	for i in range(width):
-		for j in range(height):
+	for j in range(height):
+		for i in range(width):
 			if new_mask_pixels[i, j] == (255, 0, 0, 255):
 				new_mask_pixels[i, j] = (255, 255, 255, 255)
 				new_image_pixels[i, j] = Blur(new_image_pixels, i, j)
 	return(new_image, new_mask)
 	
-#def main():
-trees = []
-for file in glob.glob("trees\*.png"):
-	trees.append(file)
-images = []
-for file in glob.glob("input\*\*.jpg"):
-	images.append(file)
-number = int(input())
-for i in range(number):
-	im = images[random.randint(0, len(images) - 1)]
-	(new_im, new_mask) = CreateTree(im, trees)
-	new_im.save("output/generated_image_" + str(i + 1) + ".jpg", "JPEG")
-	new_mask.save("output/generated_image_" +str(i + 1) + ".JPG.hand_mask.png", "PNG")
+def main():
+	trees = []
+	for file in glob.glob("trees\*.png"):
+		trees.append(file)
+	images = []
+	for file in glob.glob("input\*\*.jpg"):
+		images.append(file)
+	number = int(input())
+	for i in range(number):
+		im = images[random.randint(0, len(images) - 1)]
+		(new_im, new_mask) = CreateTree(im, trees)
+		new_im.save("output/generated_image_" + str(i + 1) + ".jpg", "JPEG")
+		new_mask.save("output/generated_image_" +str(i + 1) + ".JPG.hand_mask.png", "PNG")
+
+if __name__ == "__main__":
+	main()
