@@ -1,5 +1,5 @@
 import os, glob
-from PIL import Image
+from PIL import Image, ImageFilter
 
 def isCircle(image):
 	threshold = 9
@@ -134,10 +134,10 @@ def GetTree(file):
 	return new_mask
 	
 def main():
-	for file in glob.glob("input\*\*.jpg"):
+	for file in glob.glob("input/*/*.jpg"):
 		new_mask = GetTree(file)
 		name = os.path.basename(file)
 		new_mask.save("masks/" + name + ".png", "PNG")
-		
+	
 if __name__ == "__main__":
 	main()

@@ -37,15 +37,6 @@ def Separate(pixels, i, j):
 		elif (pixels[i, j] == (0, 0, 0, 255)):
 			pixels[i, j] = (255, 255, 255, 255)
 	return (pixels, new_blob)
-	
-def Blur(pixels, x, y):
-	color = (0, 0, 0)
-	for j in range(-5, 6):
-		for i in range(-5, 6):
-			pix = pixels[x + i, y + j]
-			color = (color[0] + pix[0], color[1] + pix[1], color[2] + pix[2])
-	new_color = (color[0] // 121, color[1] // 121, color[2] // 121)
-	return new_color
 
 def CreateTree(file, trees):
 	image = Image.open(file)
@@ -70,19 +61,22 @@ def CreateTree(file, trees):
 				(new_mask_pixels, new_blob) = Separate(new_mask_pixels, (w // 2) + w_min, (h // 2) + h_min)
 				for k in range(len(new_blob)):
 					new_mask_pixels[new_blob[k][0], new_blob[k][1]] = (0, 0, 0, 255)
+	blurredimg = new_image.copy()
+	blurredimg = blurredimg.filter(ImageFilter.GaussianBlur(10))
+	blurredomg_pix = blurredimg.load()
 	for j in range(height):
 		for i in range(width):
 			if new_mask_pixels[i, j] == (255, 0, 0, 255):
 				new_mask_pixels[i, j] = (255, 255, 255, 255)
-				new_image_pixels[i, j] = Blur(new_image_pixels, i, j)
+				new_image_pixels[i, j] = blurredomg_pix[i, j]
 	return(new_image, new_mask)
-	
+
 def main():
 	trees = []
-	for file in glob.glob("trees\*.png"):
+	for file in glob.glob("trees/*.png"):
 		trees.append(file)
 	images = []
-	for file in glob.glob("input\*\*.jpg"):
+	for file in glob.glob("input/*/*.jpg"):
 		images.append(file)
 	number = int(input())
 	for i in range(number):
